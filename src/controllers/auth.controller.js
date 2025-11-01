@@ -26,7 +26,7 @@ async function signup(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
+// User Login Controller
 async function login(req, res) {
   const { email, password } = req.body;
   try {
@@ -48,5 +48,8 @@ async function login(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
+
+
 
 module.exports = { signup, login };
