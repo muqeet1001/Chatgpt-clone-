@@ -2,6 +2,7 @@ const { Server } = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
+const {generateResponse} = require("../services/ai.service");
 function initSocketServer(httpServer) {
   const io = new Server(httpServer, {});
   io.use(async (socket, next) => {
@@ -17,8 +18,7 @@ function initSocketServer(httpServer) {
         console.error("Socket auth: user not found for decoded token:", decoded);
         return next(new Error("Authentication error: User not found"));
       }
-      console.log(user);
-      
+
       socket.user = user;
       return next();
     } catch (err) {
@@ -28,10 +28,19 @@ function initSocketServer(httpServer) {
   });
 
   io.on("connection", (socket) => {
-    console.log("New client connected:", socket.id);
-    socket.on("disconnect", () => {
-      console.log("Client disconnected:", socket.id);
-    });
+      socket.on("ai-message", async (messagePayload)=>{
+        if (typeof messagePayload === "string") {
+      messagePayload = JSON.parse(messagePayload);
+    }
+
+    console.log("Parsed payload:", messagePayload);
+         console.log(messagePayload.content);
+          const aiResponse = await generateResponse(messagePayload.content);
+         socket.emit("ai-response",{
+            content:aiResponse,
+            chat:messagePayload.chat
+         });
+      })
   });
 }
 
