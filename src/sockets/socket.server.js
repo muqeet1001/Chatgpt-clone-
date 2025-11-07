@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const { generateResponse } = require("../services/ai.service");
 const messageModel = require("../models/message.model");
-
+const { queryMemory, createMemeory } = require("../services/vector.service");
+const { generateEmbedding } = require("../services/ai.service");
 function initSocketServer(httpServer) {
   const io = new Server(httpServer, {});
   io.use(async (socket, next) => {
@@ -28,27 +29,26 @@ function initSocketServer(httpServer) {
       return next(new Error("Authentication error"));
     }
   });
-
   io.on("connection", (socket) => {
     socket.on("ai-message", async (messagePayload) => {
-       
-        if (typeof messagePayload === "string") {
-      messagePayload = JSON.parse(messagePayload);
-    }
-     console.log(messagePayload.content);
+
+      if (typeof messagePayload === "string") {
+        messagePayload = JSON.parse(messagePayload);
+      }
       await messageModel.create({
         chat: messagePayload.chat,
         user: socket.user._id,
         content: messagePayload.content,
         role: "user"
       })
+      const vectors = await generateEmbedding(messagePayload.content);
+      console.log(vectors);
+
       const chatHistory = await messageModel.find({
         chat: messagePayload.chat
       })
-      
-
-      const aiResponse = await generateResponse(chatHistory.map(item =>{
-        return { role: item.role, parts:[{text:item.content}] };
+      const aiResponse = await generateResponse(chatHistory.map(item => {
+        return { role: item.role, parts: [{ text: item.content }] };
       }));
 
       await messageModel.create({
