@@ -10,15 +10,26 @@ async function generateResponse(content) {
   return response.text;
 }
 
+//async function generateEmbedding(text) {
+  // const response = await ai.models.embedContent({
+  //   model: "gemini-embedding-001",
+  //   contents: text,
+  //   config:{
+  //     outputDimensions: 768
+  //   }
+  // });
+  // return response.embeddings[0].values;
+//}
 async function generateEmbedding(text) {
   const response = await ai.models.embedContent({
-    model: "gemini-embedding-001",
+    model: "models/embedding-001",
     contents: text,
-    confiq:{
-      outputDimensions: 768
-    }
+    config: {
+      outputDimension: 768, // ✅ correct key + correct spelling
+    },
   });
-  return response.embeddings;
+
+  return response.embeddings[0].values; // ✅ correct property
 }
  module.exports = {
   generateResponse,
