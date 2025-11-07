@@ -1,4 +1,9 @@
-const { GoogleGenAI } = require("@google/genai");
+ const { GoogleGenAI } = require("@google/genai");
+const { OpenAI } = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 const ai = new GoogleGenAI({});
 
@@ -10,28 +15,17 @@ async function generateResponse(content) {
   return response.text;
 }
 
-//async function generateEmbedding(text) {
-  // const response = await ai.models.embedContent({
-  //   model: "gemini-embedding-001",
-  //   contents: text,
-  //   config:{
-  //     outputDimensions: 768
-  //   }
-  // });
-  // return response.embeddings[0].values;
-//}
 async function generateEmbedding(text) {
-  const response = await ai.models.embedContent({
-    model: "models/embedding-001",
-    contents: text,
-    config: {
-      outputDimension: 768, // ✅ correct key + correct spelling
-    },
+  const response = await openai.embeddings.create({
+    model: "text-embedding-3-small",  
+    input: text
   });
 
-  return response.embeddings[0].values; // ✅ correct property
+  // ✅ Correct property
+  return response.data[0].embedding;
 }
- module.exports = {
+
+module.exports = {
   generateResponse,
   generateEmbedding
- };
+};
