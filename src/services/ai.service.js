@@ -1,12 +1,10 @@
- const { GoogleGenAI } = require("@google/genai");
-const { OpenAI } = require("openai");
+const { GoogleGenAI } = require("@google/genai");
+const { pipeline } = require("@xenova/transformers");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
+// Keep your existing Gemini setup
 const ai = new GoogleGenAI({});
 
+// 🧠 Keep your existing text generation function
 async function generateResponse(content) {
   const response = await ai.models.generateContent({
     model: "gemini-2.0-flash",
@@ -15,17 +13,26 @@ async function generateResponse(content) {
   return response.text;
 }
 
-async function generateEmbedding(text) {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",  
-    input: text
-  });
+// 🧩 Embedding function using Transformers.js (pooling + normalize)
+let embedder = null;
 
-  // ✅ Correct property
-  return response.data[0].embedding;
+async function generateEmbedding(text) {
+  if (!embedder) {
+    // Use a 768-d model to match your Pinecone index
+    const modelId = "Xenova/all-mpnet-base-v2";
+    console.log("⏳ Loading embedding model...", modelId);
+    embedder = await pipeline("feature-extraction", modelId);
+    console.log("✅ Embedding model ready (768-d)");
+  }
+
+  // Compute a single 768-d sentence embedding (mean pooled, L2-normalized)
+  const output = await embedder(text, { pooling: "mean", normalize: true });
+
+  // Ensure we return a plain JS array for Pinecone
+  return Array.from(output.data);
 }
 
 module.exports = {
   generateResponse,
-  generateEmbedding
+  generateEmbedding,
 };

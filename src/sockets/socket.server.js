@@ -48,7 +48,8 @@ const { generateEmbedding } = require("../services/ai.service");
           chat: messagePayload.chat,
           user: socket.user._id
        },
-       messageId:"323232"
+       // Use the actual message id to keep vectors unique per message
+       messageId: String(userMessage._id)
 
       });
 

@@ -23,7 +23,8 @@ async function queryMemory({ queryVector, limit = 5, metadata }) {
     const data = await chatGptindex.query({
         vector: queryVector,
         topK: limit,
-        filter: metadata ? {metadata} : undefined,
+        // Pass metadata fields directly; do not wrap inside { metadata: ... }
+        filter: metadata || undefined,
         includeMetadata: true,
     });
     return data.matches;
