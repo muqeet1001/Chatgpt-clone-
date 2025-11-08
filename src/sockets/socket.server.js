@@ -56,6 +56,8 @@ const { generateEmbedding } = require("../services/ai.service");
       const chatHistory = (await messageModel.find({
         chat: messagePayload.chat
       }).sort({ createdAt: 1 }).limit(20).lean()).reverse();
+
+      
       const aiResponse = await generateResponse(chatHistory.map(item => {
         return { role: item.role, parts: [{ text: item.content }] };
       }));
