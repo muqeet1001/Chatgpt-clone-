@@ -19,15 +19,21 @@ async function createMemory({ vector, metadata,messageId }) {
     ]);
 }
 
-async function queryMemory({ queryVector, limit = 5, metadata }) {
-    const data = await chatGptindex.query({
+ async function queryMemory({ queryVector, limit = 5, metadata }) {
+    const queryOptions = {
         vector: queryVector,
         topK: limit,
-        // Pass metadata fields directly; do not wrap inside { metadata: ... }
-        filter: metadata || undefined,
         includeMetadata: true,
-    });
+    };
+
+    // Only add filter if metadata has keys
+    if (metadata && Object.keys(metadata).length > 0) {
+        queryOptions.filter = metadata;
+    }
+
+    const data = await chatGptindex.query(queryOptions);
     return data.matches;
 }
+
 
 module.exports = { createMemory, queryMemory };

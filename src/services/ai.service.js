@@ -5,12 +5,19 @@ const { pipeline } = require("@xenova/transformers");
 const ai = new GoogleGenAI({});
 
 // 🧠 Keep your existing text generation function
-async function generateResponse(content) {
-  const response = await ai.models.generateContent({
+async function generateResponse(contents) {
+  // Ensure array-of-contents with role/parts
+  const payload = Array.isArray(contents) ? contents : [
+    { role: 'user', parts: [{ text: String(contents || '') }] }
+  ];
+
+  const result = await ai.models.generateContent({
     model: "gemini-2.0-flash",
-    contents: content,
+    contents: payload,
   });
-  return response.text;
+  const textFn = result?.response?.text;
+  const text = typeof textFn === 'function' ? textFn() : textFn;
+  return text || '';
 }
 
 // 🧩 Embedding function using Transformers.js (pooling + normalize)
